@@ -53,6 +53,20 @@ class MutilItemFrame(tk.Frame):
             b.pack(anchor=tk.W)
         self.items.pack()
         
+class ListFrame(tk.Frame):
+    """动作提取列举面板"""
+    def __init__(self, parent=None, **kw):
+        tk.Frame.__init__(self, parent, kw)
+        self.theLB = tk.Listbox(self, setgrid=True)
+        self.theLB.pack()
+        
+    def add(self, s_):
+        self.theLB.insert(tk.END, s_)
+        
+    def delete(self):
+        ind = self.theLB.index(tk.ACTIVE)
+        self.theLB.delete(tk.ACTIVE)
+        return ind
 
 class ExtractFrame(tk.Frame):
     """动作提取的操作面板"""
@@ -64,7 +78,7 @@ class ExtractFrame(tk.Frame):
         self.max_row = 20
         self.act_f = []
         self.objs_f = []
-        self.series = None
+        self.series = []
         
     def sentence_feed(self, words):
         self.words = words
@@ -82,21 +96,27 @@ class ExtractFrame(tk.Frame):
         tk.Button(self.button_f, text = 'Action1', command = lambda t=1:self.b_append_fun(t)).pack(side = tk.LEFT, padx=5, pady=5)
         tk.Button(self.button_f, text = 'Action2', command = lambda t=2:self.b_append_fun(t)).pack(side = tk.LEFT, padx=5, pady=5)
         tk.Button(self.button_f, text = 'Action3', command = lambda t=3:self.b_append_fun(t)).pack(side = tk.LEFT, padx=5, pady=5)
-    
+        tk.Button(self.button_f, text="删除", command=lambda : self.delete()).pack(padx=10, pady=5)
+        
     def b_append_fun(self, act_type):
         act_ind = self.act_ind.get()
         objs_ind = reduce(list.__add__, [[var.get() for var in obj.vars] for obj in self.objs_f])
         objs_ind = [i for i, var in enumerate(objs_ind) if var]
         [[var.set(0) for var in obj.vars] for obj in self.objs_f]
         self.series.append([act_ind, act_type, objs_ind])
+        self.list_f.add(f"T{act_type}_{self.words[act_ind]}:{objs_ind}")
         print(self.series[-1])
         pass
-
-    # def b_next_fun(self):
-        # super().quit()
+    
+    def delete(self):
+        ind = self.list_f.delete()
+        act_ = self.series.pop(ind)
+        print(act_, "removed!")
         
     def show(self):
         [[act.show(ind), objs.show()] for ind, (act, objs) in enumerate(zip(self.act_f, self.objs_f))]
+        self.list_f = ListFrame(self.select_f)
+        self.list_f.pack()
         self.button_pack()
         self.select_f.pack()
         self.button_f.pack()
@@ -106,7 +126,7 @@ class ExtractFrame(tk.Frame):
 if __name__ == "__main__":
     ef = ExtractFrame()
     sentence = "Python is all about automating repetitive tasks, leaving more time for your other SEO efforts."
-    ef.sentence_feed(sentence)
+    ef.sentence_feed(sentence.split())
     ef.show()
     
     
